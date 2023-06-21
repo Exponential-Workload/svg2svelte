@@ -9,9 +9,9 @@
   let svgoOut = '';
   $: {
     if (typeof DOMParser !== 'undefined') {
-      const parser = new DOMParser();
-      const svg = parser.parseFromString(
-        svgo.optimize(
+      try {
+        const parser = new DOMParser();
+        const svgout = svgo.optimize(
           input ||
             `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1877 512">
   <!-- your svg here -->
@@ -19,53 +19,68 @@
           {
             floatPrecision: 3,
           }
-        ).data,
-        'image/svg+xml'
-      );
-      svgoOut = svg.documentElement.outerHTML;
-      // get width from either width or viewbox
-      const width =
-        svg.documentElement.getAttribute('width') ||
-        svg.documentElement.getAttribute('viewBox')?.split(' ')[2];
-      // get height from either height or viewbox
-      const height =
-        svg.documentElement.getAttribute('height') ||
-        svg.documentElement.getAttribute('viewBox')?.split(' ')[3];
-      svg.documentElement.setAttribute('width', `{width}px`);
-      svg.documentElement.setAttribute('height', `{height}px`);
-      // get all colours, and replace them with svelte variables
-      const colours =
-        svg.documentElement.querySelectorAll('*[fill], *[stroke]');
-      let colourVariables: Record<string, string> = {};
-      colours.forEach((colour) => {
-        const colourValue =
-          colour.getAttribute('fill') || colour.getAttribute('stroke');
-        if (colourValue) {
-          if (!colourVariables[colourValue]) {
-            const idx = Object.keys(colourVariables).length;
-            colourVariables[colourValue] = `colour${idx === 0 ? '' : idx + 1}`;
+        ).data;
+        const svg = parser.parseFromString(svgout, 'image/svg+xml');
+        const pohtml = svg.documentElement.outerHTML;
+        if (
+          pohtml.includes(
+            'http://www.mozilla.org/newlayout/xml/parsererror.xml'
+          )
+        )
+          throw new Error(`Failed to Parse:
+${pohtml}`);
+        svgoOut = svg.documentElement.outerHTML;
+        // get width from either width or viewbox
+        const width =
+          svg.documentElement.getAttribute('width') ||
+          svg.documentElement.getAttribute('viewBox')?.split(' ')[2];
+        // get height from either height or viewbox
+        const height =
+          svg.documentElement.getAttribute('height') ||
+          svg.documentElement.getAttribute('viewBox')?.split(' ')[3];
+        svg.documentElement.setAttribute('width', `{width}px`);
+        svg.documentElement.setAttribute('height', `{height}px`);
+        // get all colours, and replace them with svelte variables
+        const colours =
+          svg.documentElement.querySelectorAll('*[fill], *[stroke]');
+        let colourVariables: Record<string, string> = {};
+        colours.forEach((colour) => {
+          const colourValue =
+            colour.getAttribute('fill') || colour.getAttribute('stroke');
+          if (colourValue) {
+            if (!colourVariables[colourValue]) {
+              const idx = Object.keys(colourVariables).length;
+              colourVariables[colourValue] = `colour${
+                idx === 0 ? '' : idx + 1
+              }`;
+            }
+            colour.setAttribute(
+              colour.getAttribute('fill') ? 'fill' : 'stroke',
+              `{${colourVariables[colourValue]}}`
+            );
           }
-          colour.setAttribute(
-            colour.getAttribute('fill') ? 'fill' : 'stroke',
-            `{${colourVariables[colourValue]}}`
-          );
-        }
-      });
-      svelte =
-        '<' +
-        `script lang='ts'>
+        });
+        svelte =
+          '<' +
+          `script lang='ts'>
   export let width = ${width};
   export let height = width / ${width} * ${height};${Object.entries(
-          colourVariables
-        )
-          .map(
-            ([key, value]) => `
-  export let ${value} = '${key}';`
+            colourVariables
           )
-          .join('')}
+            .map(
+              ([key, value]) => `
+  export let ${value} = '${key}';`
+            )
+            .join('')}
 </` +
-        `script>
+          `script>
 ${svg.documentElement.outerHTML}`;
+      } catch (error) {
+        console.warn(`Error messing with SVG:`, error);
+        svelte = `<!--
+${error}
+-->`;
+      }
     }
   }
   const readonlyChangeAttempt = ({ detail }: { detail: { value: string } }) => {
