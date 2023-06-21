@@ -95,6 +95,8 @@ ${error}
       } catch (error) {}
     }
   };
+  let copied = false;
+  let saved = false;
 </script>
 
 <svelte:window
@@ -108,6 +110,22 @@ ${error}
         encodeURIComponent(isLower ? svelte : svgoOut);
       a.download = isLower ? 'svg.svelte' : 'svg.svg';
       a.click();
+      saved = true;
+      setTimeout(() => {
+        saved = false;
+      }, 2500);
+    } else if (e.ctrlKey && e.key.toLowerCase() === 'e') {
+      e.preventDefault();
+      const isLower = e.key.toLowerCase() === e.key;
+      try {
+        navigator.clipboard.writeText(isLower ? svelte : svgoOut);
+        copied = true;
+        setTimeout(() => {
+          copied = false;
+        }, 2500);
+      } catch (error) {
+        alert(error);
+      }
     }
   }}
 />
@@ -149,6 +167,40 @@ ${error}
       />
     </div>
   </div>
+  <table
+    style="font-weight:400;font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;position:fixed;bottom:1ch;left:50vw;transform:translate(-50%,0);background:#fff2;backdrop-filter:blur(16px);border-radius:8px;padding:1ch;transition:1s;"
+  >
+    <tbody>
+      <tr>
+        <th style="text-align:left;">Shortcut</th>
+        <th style="text-align:left;">Action</th>
+      </tr>
+      <tr>
+        <td>Ctrl+S </td>
+        <td>Save Svelte </td>
+      </tr>
+      <tr>
+        <td style="padding-right:15px;">Ctrl+Shift+S </td>
+        <td>Save SVGO SVG</td>
+      </tr>
+      <tr>
+        <td>Ctrl+E </td>
+        <td>Copy Svelte</td>
+      </tr>
+      <tr>
+        <td>Ctrl+Shift+E </td>
+        <td>Copy SVGO SVG</td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- toasts -->
+  {#if copied || saved}
+    <div
+      style="position:fixed;bottom:0.5rem;left:50vw;transform:translate(-50%,0);background:#fff2;backdrop-filter:blur(16px);border-radius:8px;padding:1ch;transition:1s;text-align:center;width:10vw;"
+    >
+      <p>{copied ? 'Copied' : 'Saved'}!</p>
+    </div>
+  {/if}
 </main>
 
 <style lang="scss">
