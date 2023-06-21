@@ -97,6 +97,21 @@ ${error}
   };
 </script>
 
+<svelte:window
+  on:keydown={(e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      const a = document.createElement('a');
+      const isLower = e.key.toLowerCase() === e.key;
+      a.href =
+        'data:text/plain;charset=utf-8,' +
+        encodeURIComponent(isLower ? svelte : svgoOut);
+      a.download = isLower ? 'svg.svelte' : 'svg.svg';
+      a.click();
+    }
+  }}
+/>
+
 <svelte:head>
   <Meta
     tags={{
