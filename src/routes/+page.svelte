@@ -17,6 +17,13 @@
   <!-- your svg here -->
 </svg>`,
           {
+            multipass: true,
+            plugins: [
+              'preset-default',
+              'collapseGroups',
+              'convertEllipseToCircle',
+              'convertPathData',
+            ],
             floatPrecision: 3,
           }
         ).data;
