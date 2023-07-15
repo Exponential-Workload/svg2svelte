@@ -2,6 +2,7 @@
   import CodeMirror from '$lib/CodeMirror.svelte';
   import Meta from '../lib/Meta/Meta.svelte';
   import svgo from 'svgo';
+  import xmlFormat from 'xml-formatter';
   let input = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1877 512">
   <!-- your svg here -->
 </svg>`;
@@ -75,6 +76,7 @@ ${pohtml}`);
             );
           }
         });
+        const xml = `${svg.documentElement.outerHTML}`;
         svelte =
           '<' +
           `script lang='ts'>
@@ -89,7 +91,9 @@ ${pohtml}`);
             .join('')}
 </` +
           `script>
-${svg.documentElement.outerHTML}`;
+${xmlFormat(xml, {
+  indentation: '  ',
+})}`;
       } catch (error) {
         console.warn(`Error messing with SVG:`, error);
         svelte = `<!--
@@ -100,7 +104,7 @@ ${error}
   }
   const readonlyChangeAttempt = ({ detail }: { detail: { value: string } }) => {
     const val = detail.value;
-    if (Math.abs(val.length - input.length) > 64) {
+    if (Math.abs(val.length - input.length) > 64 && !val.includes('<script')) {
       try {
         // parse
         const parser = new DOMParser();
