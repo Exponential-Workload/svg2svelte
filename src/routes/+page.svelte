@@ -19,10 +19,18 @@
           {
             multipass: true,
             plugins: [
-              'preset-default',
+              {
+                name: 'preset-default',
+                params: {
+                  overrides: {
+                    removeViewBox: false,
+                  },
+                },
+              },
               'collapseGroups',
               'convertEllipseToCircle',
               'convertPathData',
+              'removeDimensions',
             ],
             floatPrecision: 3,
           }
