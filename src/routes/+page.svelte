@@ -79,9 +79,9 @@ ${pohtml}`);
           '<' +
           `script lang='ts'>
   export let width = ${width};
-  export let height = width / ${width} * ${height};${Object.entries(
-            colourVariables
-          )
+  export let height = ${
+    width === height ? 'width' : `width / ${width} * ${height}`
+  };${Object.entries(colourVariables)
             .map(
               ([key, value]) => `
   export let ${value} = '${key}';`
