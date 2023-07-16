@@ -32,6 +32,12 @@
               'convertEllipseToCircle',
               'convertPathData',
               'removeDimensions',
+              {
+                name: 'prefixIds',
+                params: {
+                  prefix: Math.random().toString(36).slice(2),
+                },
+              },
             ],
             floatPrecision: 3,
           }
